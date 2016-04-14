@@ -20,14 +20,14 @@ class HerokuDynoKiller
       @heroku.restart(dyno[:name])
       restarts.push dyno
     end
-    
+
     restarts
   end
 
   # Returns all dynos over threshold.
   def dynos_over_threshold
     dynos.select do |dyno|
-      dyno[:memory] >= @threshold
+      dyno[:memory] == "R14" || dyno[:memory] >= @threshold
     end
   end
 
@@ -41,7 +41,7 @@ class HerokuDynoKiller
     end
 
     data.map do |k, v|
-      {name: k, memory: v.to_f}
+      {name: k, memory: v}
     end
   end
 
@@ -52,6 +52,10 @@ class HerokuDynoKiller
 
   # Extract dyno memory from log
   def memory_from_event(event)
-    event["message"].scan(/sample#memory_total=(\d+\.\d*)/).last.first
+    if event["message"].scan(/Error R14/)
+      "R14"
+    else
+      event["message"].scan(/sample#memory_total=(\d+\.\d*)/).last.first.to_f
+    end
   end
 end
