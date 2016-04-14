@@ -52,7 +52,7 @@ class HerokuDynoKiller
 
   # Extract dyno memory from log
   def memory_from_event(event)
-    if event["message"].scan(/Error R14/)
+    if event["message"].scan(/Error R14/).length > 0
       "R14"
     else
       event["message"].scan(/sample#memory_total=(\d+\.\d*)/).last.first.to_f
