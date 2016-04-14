@@ -27,7 +27,7 @@ class HerokuDynoKiller
   # Returns all dynos over threshold.
   def dynos_over_threshold
     dynos.select do |dyno|
-      dyno[:memory] == "R14" || dyno[:memory] >= @threshold
+      (dyno[:memory] == "R14" || dyno[:memory] >= @threshold) && ((DateTime.now - DateTime.parse(dyno[:timestamp])).to_f * 24 * 60).to_i <= 6
     end
   end
 
@@ -37,11 +37,11 @@ class HerokuDynoKiller
   def dynos
     data = {}
     @papertrail.events.each do |event|
-      data[dyno_name_from_event(event)] = memory_from_event(event)
+      data[dyno_name_from_event(event)] = [memory_from_event(event), event["received_at"]]
     end
 
     data.map do |k, v|
-      {name: k, memory: v}
+      {name: k, memory: v[0], timestamp: v[1]}
     end
   end
 
